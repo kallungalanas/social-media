@@ -6,9 +6,23 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+// Socket.io configuration for Render and production
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Allow all origins for production
+        methods: ["GET", "POST"],
+        credentials: false
+    },
+    pingTimeout: 60000, // Timeout for ping
+    pingInterval: 25000, // Ping interval
+    transports: ['websocket', 'polling'] // Prefer WebSocket, fallback to polling
+});
 
 const PORT = process.env.PORT || 3000;
+
+// Trust proxy for Render
+app.set('trust proxy', 1);
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
