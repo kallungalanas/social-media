@@ -238,7 +238,12 @@ socket.on('chat_ended', (data) => {
 // Connection status
 socket.on('connect', () => {
     console.log('Connected to server');
-    onlineUsersSpan.textContent = '1';
+});
+
+// Receive online count from server
+socket.on('online_count', (count) => {
+    console.log('Online users:', count);
+    onlineUsersSpan.textContent = count;
 });
 
 socket.on('disconnect', () => {

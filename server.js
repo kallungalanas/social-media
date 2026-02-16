@@ -37,6 +37,19 @@ function generateUserId() {
     return uuidv4().substring(0, 8);
 }
 
+// Calculate online users count (all connected users)
+function getOnlineCount() {
+    // Count ALL connected sockets (all users on the website)
+    return io.sockets.sockets.size;
+}
+
+// Broadcast online count to all connected clients
+function broadcastOnlineCount() {
+    const count = getOnlineCount();
+    io.emit('online_count', count);
+    console.log(`Online users count: ${count}`);
+}
+
 // Find a match for a user
 function findMatch(socketId) {
     // Find someone else waiting (excluding the current user)
@@ -46,6 +59,10 @@ function findMatch(socketId) {
         // Remove from waiting list
         const matchedSocketId = waitingUsers[matchIndex];
         waitingUsers.splice(matchIndex, 1);
+        
+        // Broadcast online count after match found
+        broadcastOnlineCount();
+        
         return matchedSocketId;
     }
     return null;
@@ -65,6 +82,9 @@ io.on('connection', (socket) => {
         message: 'Welcome to Stranger Chat!',
         userId: displayUserId
     });
+    
+    // Broadcast online count to all clients
+    broadcastOnlineCount();
     
     // User wants to find a stranger
     socket.on('find_stranger', () => {
@@ -171,6 +191,9 @@ io.on('connection', (socket) => {
         if (index !== -1) {
             waitingUsers.splice(index, 1);
         }
+        
+        // Broadcast online count after disconnect
+        broadcastOnlineCount();
     });
 });
 
@@ -197,6 +220,9 @@ function endChat(socketId, socket) {
         });
         
         console.log(`Chat ended between ${socketId} and ${partnerSocketId}`);
+        
+        // Broadcast online count after chat ends
+        broadcastOnlineCount();
     }
 }
 
